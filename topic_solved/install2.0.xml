@@ -1,0 +1,224 @@
+<?xml version="1.0"?>
+<!DOCTYPE modification SYSTEM "http://www.simplemachines.org/xml/modification">
+<modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
+	<id>SimpleDesk:Topic_Solved_Mod</id>
+	<version>1.0</version>
+
+	<!-- Template files -->		
+	<file name="$themedir/MessageIndex.template.php">	
+		<operation>
+			<search position="replace"><![CDATA[$color_class = 'windowbg';]]></search>
+			<add><![CDATA[$color_class = 'windowbg';
+				
+			// Solved topics
+			if ($topic['is_solved'] && $topic['is_locked'])
+				$color_class = 'lockedbg solvedbg';
+			elseif ($topic['is_solved'])
+				$color_class = 'solvedbg';]]></add>
+		</operation>
+	</file>
+	<file name="$themedir/Display.template.php">	
+		<operation>
+			<search position="before"><![CDATA[// Show the anchor for the top and for the first message. If the first message is new, say so.]]></search>
+			<add><![CDATA[// Let them know that this is solved
+	if(!empty($modSettings['topicsolved_display_notice']) && $context['is_solved'] && $context['board_solve'])
+		echo'<br /><div class="information">', $txt['topicsolved_is_solved'], '</div>';]]></add>
+		</operation>
+		<operation>
+			<search position="after"><![CDATA[// Restore topic. eh?  No monkey business.]]></search>
+			<add><![CDATA[// Topic solved.
+	$mod_buttons = array_merge(array(
+		'solve' => array('test' => 'can_solve', 'text' => empty($context['is_solved']) ? 'solve_topic' : 'unsolve_topic', 'image' => empty($context['is_solved']) ? 'solve.gif' : 'unsolve.gif', 'lang' => true, 'url' => $scripturl . '?action=solve;topic=' . $context['current_topic'] . '.' . $context['start'] . ';' . $context['session_var'] . '=' . $context['session_id']),
+	),$mod_buttons);]]></add>
+		</operation>		
+	</file>		
+
+	<!-- Source files -->		
+	<file name="$boarddir/index.php">	
+		<operation>
+			<search position="after"><![CDATA[// Get the function and file to include - if it's not there, do the board index.]]></search>
+			<add><![CDATA[$actionArray['solve'] = array('SolveTopic.php', 'SolveTopic');]]></add>
+		</operation>
+	</file>
+	<file name="$sourcedir/Display.php">	
+		<operation>
+			<search position="replace"><![CDATA[foreach ($anyown_permissions as $contextual => $perm)
+		$context[$contextual] = allowedTo($perm . '_any') || ($context['user']['started'] && allowedTo($perm . '_own'));]]></search>
+			<add><![CDATA[// Topic solved
+	$anyown_permissions['can_solve'] = 'solve_topic';
+	
+	foreach ($anyown_permissions as $contextual => $perm)
+		$context[$contextual] = allowedTo($perm . '_any') || ($context['user']['started'] && allowedTo($perm . '_own'));
+		
+	// Topic solved. Is this one of THE boards?
+	$context['board_solve'] = !empty($modSettings['topicsolved_board_' . $board]);
+	$context['can_solve'] &= $context['board_solve'];
+]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[' . (!empty($modSettings['recycle_board']) && $modSettings['recycle_board'] == $board ? ', id_previous_board, id_previous_topic' : '') . ']]></search>
+			<add><![CDATA[, t.solved]]></add>
+		</operation>	
+		<operation>
+			<search position="after"><![CDATA[// We don't want to show the poll icon in the topic class here, so pretend it's not one.]]></search>
+			<add><![CDATA[// Topic solved
+	$context['is_solved'] = $topicinfo['solved'];]]></add>
+		</operation>		
+	</file>	
+	<file name="$sourcedir/Subs.php">	
+		<operation>
+			<search position="after"><![CDATA[if (!is_array($extra))]]></search>
+			<add><![CDATA[// Solved log
+	$log_types = array_merge($log_types,array('solve' => 4));]]></add>
+		</operation>	
+	</file>		
+	<file name="$sourcedir/ModLog.php">	
+		<operation>
+			<search position="before"><![CDATA[isAllowedTo('admin_forum');]]></search>
+			<add><![CDATA[// Topic solved log
+	$context['log_type'] = isset($_REQUEST['sa']) && $_REQUEST['sa'] == 'solvelog' ? 4 : $context['log_type'];
+	
+	// Make sure the solve log is enabled.
+	if($context['log_type'] == 4 && empty($modSettings['enable_solved_log']))
+		redirectexit('action=moderate');]]></add>
+		</operation>
+		<operation>
+			<search position="after"><![CDATA[// The number of entries to show per page of log file.]]></search>
+			<add><![CDATA[// Topic solved log: Override page_title and url_starts if required.
+	if($context['log_type'] == 4)
+	{
+		$context['page_title'] = 'Solve log';	
+		$context['url_start'] = '?action=moderate;area=modlog;sa=solvelog;type=4';		
+	}]]></add>
+		</operation>	
+		<operation>
+			<search position="after"><![CDATA[// Create the watched user list.]]></search>
+			<add><![CDATA[// Topic solved log: Override some list data before we create it.
+	if($context['log_type'] == 4)
+	{
+		$listOptions['title'] = '<a href="' . $scripturl . '?action=helpadmin;help=solve_log_help" onclick="return reqWin(this.href);" class="help"><img src="' . $settings['images_url'] . '/helptopics.gif" alt="' . $txt['help'] . '" align="top" /></a> ' . $txt['modlog_solve_log'];
+		$listOptions['additional_rows'][0]['value'] = $txt['modlog_solve_log_desc'];
+		$listOptions['no_items_label'] = $txt['modlog_solve_log_no_entries_found'];
+	}]]></add>
+		</operation>		
+	</file>	
+	<file name="$sourcedir/Admin.php">	
+		<operation>
+			<search position="before"><![CDATA['pruning' => array($txt['pruning_title'], 'admin_forum'),]]></search>
+			<add><![CDATA['solvelog' => array($txt['modlog_solve_log'], 'moderate_forum', 'enabled' => !empty($modSettings['enable_solved_log']), 'url' => $scripturl . '?action=moderate;area=modlog;sa=solvelog'),]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[// Mod Authors for a "ADD AFTER" on this line. Ensure you end your change with a comma. For example:]]></search>
+			<add><![CDATA[
+			'topicsolved' => array($txt['topic_solved_title']),]]></add>
+		</operation>		
+	</file>	
+	<file name="$sourcedir/ModerationCenter.php">	
+		<operation>
+			<search position="after"><![CDATA['notice' => array(]]></search>
+			<add><![CDATA['solvelog' => array(
+					'enabled' => !empty($modSettings['enable_solved_log']),
+					'label' => $txt['modlog_solve_log'],
+					'file' => 'Modlog.php',
+					'function' => 'ViewModlog',
+					'custom_url' => $scripturl . '?action=moderate;area=modlog;sa=solvelog',
+				),]]></add>
+		</operation>	
+	</file>	
+	<file name="$sourcedir/ManagePermissions.php">	
+		<operation>
+			<search position="before"><![CDATA[// All permission groups that will be shown in the left column on classic view.
+]]></search>
+			<add><![CDATA[$permissionList['board']['solve_topic'] = array(true, 'topic', 'moderate', 'moderate');]]></add>
+		</operation>	
+	</file>
+	<file name="$sourcedir/ManageSettings.php">	
+		<operation>
+			<search position="after"><![CDATA[// Mod authors, once again, if you have a whole section to add do it AFTER this line, and keep a comma at the end.]]></search>
+			<add><![CDATA['topicsolved' => 'ModifyTopicSolvedSettings',]]></add>
+		</operation>	
+		<operation>
+			<search position="end" />
+			<add><![CDATA[// Topic solved mod
+function ModifyTopicSolvedSettings($return_config = false)
+{
+	global $txt, $scripturl, $context, $settings, $sc, $modSettings, $smcFunc;
+	
+	$query = $smcFunc['db_query']('', '
+		SELECT id_board, id_cat, child_level, name FROM {db_prefix}boards ORDER BY board_order ASC
+	');
+	
+	$config_vars = array();
+	$last = -1;
+	
+	$config_vars[] = array('check', 'enable_solved_log');
+	$config_vars[] = array('check', 'topicsolved_highlight');
+	$config_vars[] = array('text', 'topicsolved_highlight_col1', 'size' => 10, 'disabled' => empty($modSettings['topicsolved_highlight']));
+	$config_vars[] = array('text', 'topicsolved_highlight_col2', 'size' => 10, 'disabled' => empty($modSettings['topicsolved_highlight']));
+	$config_vars[] = array('check', 'topicsolved_display_notice');
+	$config_vars[] = '';	
+	$config_vars[] = array('message', 'topicsolved_board_desc');
+
+	while($row = $smcFunc['db_fetch_assoc']($query)) {
+		if($row['id_cat'] != $last && $last != -1) {
+			$config_vars[] = '';
+		}
+		$board_id = 'topicsolved_board_' . $row['id_board'];
+		$txt[$board_id] = (($row['child_level'] > 0) ? str_repeat('&nbsp; &nbsp; ', $row['child_level']) : '') . $row['name'];
+		$config_vars[] = array('check', $board_id);
+		$last = $row['id_cat'];
+	}
+	
+	$smcFunc['db_free_result']($query);	
+
+	if ($return_config)
+		return $config_vars;
+
+	$context['post_url'] = $scripturl . '?action=admin;area=modsettings;save;sa=topicsolved';
+	$context['settings_title'] = $txt['topic_solved_title'];
+
+	// Saving?
+	if (isset($_GET['save']))
+	{
+		checkSession();
+
+		$save_vars = $config_vars;
+		saveDBSettings($save_vars);
+		
+		redirectexit('action=admin;area=modsettings;sa=topicsolved');
+	}
+
+	prepareDBSettingContext($config_vars);
+}]]></add>
+		</operation>		
+	</file>	
+	<file name="$sourcedir/MessageIndex.php">	
+		<operation>
+			<search position="after"><![CDATA[determineTopicClass($context['topics'][$row['id_topic']]);]]></search>
+			<add><![CDATA[// Topic solved highlighting, if enabled.
+			$context['topics'][$row['id_topic']]['is_solved'] = $context['board_solve'] && !empty($row['solved']);
+			]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[SUBSTRING(mf.body, 1, 385) AS first_body, ml.smileys_enabled AS last_smileys, mf.smileys_enabled AS first_smileys]]></search>
+			<add><![CDATA[, t.solved]]></add>
+		</operation>
+		<operation>
+			<search position="after"><![CDATA[// Begin 'printing' the message index for current board.]]></search>
+			<add><![CDATA[// Is this board solvable?
+		$context['board_solve'] = !empty($modSettings['topicsolved_board_' . $board]);
+		if (!empty($modSettings['topicsolved_highlight']))
+		{
+			if (!empty($modSettings['topicsolved_highlight_col1']) && !empty($modSettings['topicsolved_highlight_col2']))
+			{
+				if (empty($context['html_headers']))
+					$context['html_headers'] = '';
+				$context['html_headers'] .= '<style type="text/css">/* Topic solved */ .solvedbg { background:' . $modSettings['topicsolved_highlight_col1'] . '; } .solvedbg2 { background:' . $modSettings['topicsolved_highlight_col2'] . '; }</style>';
+			}
+		}
+
+		]]></add>
+		</operation>
+	</file>	
+
+</modification>

@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!DOCTYPE modification SYSTEM "http://www.simplemachines.org/xml/modification">
+
+<modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
+	<id>SimpleDeskTeam:BanFilter</id>
+	<version>1.0</version>
+
+	<file name="$sourcedir/Security.php"><!-- fix up the ban function to ensure it actually logs bans appropriately -->
+		<operation>
+			<search position="replace"><![CDATA[$txt['ban_continue_browse'], 'user');]]></search>
+			<add><![CDATA[$txt['ban_continue_browse'], 'ban');]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[$txt['your_ban_expires_never']), 'user');]]></search>
+			<add><![CDATA[$txt['your_ban_expires_never']), 'ban');]]></add>
+		</operation>
+	</file>
+	<file name="$sourcedir/Errors.php"><!-- add the ban to the list of possible error types -->
+		<operation>
+			<search position="before"><![CDATA[$known_error_types = array(]]></search>
+			<add><![CDATA[
+		'ban',]]></add>
+		</operation>
+	</file>
+</modification>

@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!DOCTYPE package-info SYSTEM "http://www.simplemachines.org/xml/package-info">
+<package-info xmlns="http://www.simplemachines.org/xml/package-info" xmlns:smf="http://www.simplemachines.org/">
+	<id>SimpleDeskTeam:Drafts</id>
+	<name>Drafts</name>
+	<version>1.1</version>
+	<type>modification</type>
+
+	<install for="2.0 RC3">
+		<modification format="xml" type="file">install.xml</modification>
+		<modification format="xml" type="file">english.xml</modification>
+		<modification format="xml" type="file">english_british.xml</modification>
+		<require-file name="draft_autosave.js" destination="$themes_dir/default/scripts" />
+		<database>install.php</database>
+	</install>
+	
+	<uninstall for="2.0 RC3">
+		<modification format="xml" type="file" reverse="true">install.xml</modification>
+		<modification format="xml" type="file" reverse="true">english.xml</modification>
+		<modification format="xml" type="file" reverse="true">english_british.xml</modification>
+		<remove-file name="$themes_dir/default/scripts/draft_autosave.js" />
+	</uninstall>
+</package-info>

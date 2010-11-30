@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!DOCTYPE package-info SYSTEM "http://www.simplemachines.org/xml/package-info">
+<package-info xmlns="http://www.simplemachines.org/xml/package-info" xmlns:smf="http://www.simplemachines.org/">
+	<id>SimpleDesk:Topic_Solved_Mod</id>
+	<name>Topic Solved Mod</name>
+	<version>1.0</version>
+	<type>modification</type>
+	<install for="2.0-2.99.99">
+		<readme type="file" parsebbc="true">readme.txt</readme>	
+		<modification>install2.0.xml</modification>
+		<modification>english.xml</modification>
+		<require-file name="SolveTopic.php" destination="$sourcedir" />
+		<require-file name="solved.gif" destination="$imagesdir/post" />
+		<database>install.php</database>
+	</install>
+	<uninstall for="2.0-2.99.99">
+		<readme type="inline">This will uninstall the Topic Solved Mod. Thanks for using this customization.</readme>			
+		<modification reverse="true">install2.0.xml</modification>	
+		<modification reverse="true">english.xml</modification>
+		<remove-file name="$sourcedir/SolveTopic.php" />
+		<remove-file name="$imagesdir/post/solved.gif" />
+	</uninstall>	
+</package-info>

@@ -1,0 +1,609 @@
+<?xml version="1.0"?>
+<!DOCTYPE modification SYSTEM "http://www.simplemachines.org/xml/modification">
+<modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
+	<id>SimpleDeskTeam:Drafts</id>
+	<version>1.1</version>
+
+	<file name="$sourcedir/ManagePermissions.php"><!-- Add permissions in -->
+		<operation>
+			<search position="after"><![CDATA[	// All permission groups that will be shown in the left column on classic view.]]></search>
+			<add><![CDATA[	// Drafts + Future Posting
+	$permissionList['board'] += array(
+		'post_draft' => array(false, 'topic', 'make_posts'),
+		'draft_autosave' => array(false, 'topic', 'make_posts'),
+	);
+
+]]></add>
+		</operation>
+	</file>
+
+	<file name="$sourcedir/Subs-Members.php"><!-- Remove drafts when we delete the member -->
+		<operation>
+			<search position="after"><![CDATA[	// Delete avatar.]]></search>
+			<add><![CDATA[	// Delete drafts
+	// They no longer exist, so we don't know who it was sent to.
+	$smcFunc['db_query']('', '
+		DELETE FROM {db_prefix}post_drafts
+		WHERE id_member IN ({array_int:users})',
+		array(
+			'users' => $users,
+		)
+	);
+
+]]></add>
+		</operation>
+	</file>
+
+	<file name="$themedir/GenericControls.template.php">
+		<operation><!-- add the 'save draft' button to full posting dialogue -->
+			<search position="after"><![CDATA[	if ($context['show_spellchecking'])]]></search>
+			<add><![CDATA[	// Add draft posting
+	if (!empty($context['save_draft']))
+		echo '
+		<input type="hidden" id="draft_id" name="draft_id" value="', empty($context['draft_id']) ? '0' : $context['draft_id'], '" />
+		<input type="submit" name="draft" value="', $txt['save_draft'], '" tabindex="', $context['tabindex']++, '" onclick="return confirm(' . JavaScriptEscape($txt['save_draft_warning']) . ') && submitThisOnce(this);" accesskey="d" class="button_submit" />';
+
+]]></add>
+		</operation>
+		<operation><!-- add the placeholder for 'Last saved on' after the spell check button -->
+			<search position="before"><![CDATA[spellCheckStart();" class="button_submit" />';]]></search>
+			<add><![CDATA[
+
+	if (!empty($context['save_draft_auto']))
+		echo '
+		<span id="draft_lastautosave" class="clear righttext" style="display: block;"></span>
+		<script type="text/javascript" src="', $settings['default_theme_url'], '/scripts/draft_autosave.js?rc3"></script>
+		<script type="text/javascript"><!-- // --><![CD', 'ATA[
+			var oAutoSave = new draftAutosave({
+				sSelf: \'oAutoSave\',
+				sScriptUrl: smf_scripturl,
+				sSessionId: \'', $context['session_id'], '\',
+				sSessionVar: \'', $context['session_var'], '\',
+				sLastNote: \'draft_lastautosave\',
+				sType: \'full\',
+				iBoard: ', (empty($context['current_board']) ? 0 : $context['current_board']), '
+			});
+		// ]', ']></script>';
+
+]]></add>
+		</operation>
+	</file>
+
+	<file name="$sourcedir/Display.php"><!-- enable draft saving for quick reply box -->
+		<operation>
+			<search position="before"><![CDATA[// Cleanup all the permissions with extra stuff...]]></search>
+			<add><![CDATA[
+	$context['save_draft'] = $context['can_reply'] && allowedTo('post_draft');
+	$context['save_draft_auto'] = $context['save_draft'] && allowedTo('draft_autosave');]]></add>
+		</operation>
+	</file>
+
+	<file name="$themedir/Display.template.php">
+		<operation><!-- add the button for quick reply to be able to save draft -->
+			<search position="after"><![CDATA[			if ($context['show_spellchecking'])]]></search>
+			<add><![CDATA[			// Add drafts
+			if (!empty($context['save_draft']))
+				echo '
+								<input type="hidden" id="draft_id" name="draft_id" value="', empty($context['draft_id']) ? '0' : $context['draft_id'], '" />
+								<input type="submit" name="draft" value="', $txt['save_draft'], '" onclick="return confirm(' . JavaScriptEscape($txt['save_draft_warning']) . ') && submitThisOnce(this);" accesskey="d" tabindex="', $context['tabindex']++, '" class="button_submit" />';
+]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[spellCheck(\'postmodify\', \'message\');" tabindex="', $context['tabindex']++, '" class="button_submit" />';]]></search>
+			<add><![CDATA[
+			// Add auto save draft code
+			if (!empty($context['save_draft_auto']))
+				echo '
+								<div id="draft_lastautosave" class="clear righttext"></div>
+								<script type="text/javascript" src="', $settings['default_theme_url'], '/scripts/draft_autosave.js?rc3"></script>
+								<script type="text/javascript"><!-- // --><![CD', 'ATA[
+									var oAutoSave = new draftAutosave({
+										sSelf: \'oAutoSave\',
+										sScriptUrl: smf_scripturl,
+										sSessionId: \'', $context['session_id'], '\',
+										sSessionVar: \'', $context['session_var'], '\',
+										sLastNote: \'draft_lastautosave\',
+										sType: \'quickreply\',
+										iBoard: ', (empty($context['current_board']) ? 0 : $context['current_board']), '
+									});
+								// ]', ']></script>';
+
+]]></add>
+		</operation>
+	</file>
+
+	<file name="$sourcedir/Post.php">
+		<operation><!-- saving a draft reply -->
+			<search position="after"><![CDATA[		// If the number of replies has changed, if the setting is enabled, go back to Post() - which handles the error.]]></search>
+			<add><![CDATA[		// Are we saving a draft? If so, hand over control to the draft code -- except, in the case of a session failure
+		$draft = saveDraft();
+		if (!empty($draft) && !in_array('session_timeout', $post_errors))
+		{
+			if (isset($_REQUEST['xml']))
+				draftXmlReturn($draft);
+
+			loadTemplate('Post');
+			$context['page_title'] = $txt['draft_saved_short'];
+			$context['sub_template'] = 'draft_saved';
+			return;
+		}
+
+]]></add>
+		</operation>
+		<operation><!-- saving a draft new topic -->
+			<search position="replace"><![CDATA[		$posterIsGuest = $user_info['is_guest'];
+	}
+	// Modifying an existing message?]]></search>
+			<add><![CDATA[		$posterIsGuest = $user_info['is_guest'];
+
+		// Are we saving a draft? If so, hand over control to the draft code -- except, in the case of a session failure
+		$draft = saveDraft();
+		if (!empty($draft) && !in_array('session_timeout', $post_errors))
+		{
+			if (isset($_REQUEST['xml']))
+				draftXmlReturn($draft);
+
+			loadTemplate('Post');
+			$context['page_title'] = $txt['draft_saved_short'];
+			$context['sub_template'] = 'draft_saved';
+			return;
+		}
+	}
+	// Modifying an existing message?]]></add>
+		</operation>
+		<operation><!-- add the handling into the post form -->
+			<search position="after"><![CDATA[	// Now create the editor.]]></search>
+			<add><![CDATA[	// Drafts?
+	$context['save_draft'] = allowedTo('post_draft');
+	$context['save_draft_auto'] = $context['save_draft'] && allowedTo('draft_autosave');
+
+	// Loading a draft here?
+	if (!empty($_REQUEST['draft_id']) && !empty($user_info['id']) && $context['save_draft'])
+	{
+		$_REQUEST['draft_id'] = (int) $_REQUEST['draft_id'];
+		$query = $smcFunc['db_query']('', '
+			SELECT id_board, id_topic, subject, body, post_icon, smileys_enabled, locked, sticky
+			FROM {db_prefix}post_drafts
+			WHERE id_draft = {int:draft}
+				AND id_member = {int:member}
+				AND id_board = {int:board}
+				AND id_topic = {int:topic}
+			LIMIT 1',
+			array(
+				'draft' => $_REQUEST['draft_id'],
+				'member' => $user_info['id'],
+				'board' => $board,
+				'topic' => $topic,
+			)
+		);
+		if ($row = $smcFunc['db_fetch_assoc']($query))
+		{
+			// OK, we have a draft in storage for this post. Let's get down and dirty with it.
+			$context['subject'] = $row['subject'];
+			$context['message'] = un_preparsecode($row['body']);
+			$context['use_smileys'] = !empty($row['smileys_enabled']);
+			$context['icon'] = $row['post_icon'];
+			
+			$context['draft_locked'] = $context['locked']; // This is to prevent the template getting confused and displaying the "This topic is locked" warning if it isn't actually locked already
+			$context['locked'] = !empty($row['locked']);
+
+			$context['sticky'] = !empty($row['sticky']);
+			$context['draft_id'] = $_REQUEST['draft_id'];
+		}
+
+		$smcFunc['db_free_result']($query);
+	}
+
+]]></add>
+		</operation>
+		<operation><!-- If this came from a previous draft, and it's owned by the same person, purge it. -->
+			<search position="after"><![CDATA[	// Returning to the topic?]]></search>
+			<add><![CDATA[	// Um, did this come from a draft?
+	if (!empty($_POST['draft_id']) && !empty($user_info['id']))
+	{
+		$_POST['draft_id'] = (int) $_POST['draft_id'];
+		$smcFunc['db_query']('', '
+			DELETE FROM {db_prefix}post_drafts
+			WHERE id_draft = {int:draft}
+				AND id_member = {int:member}
+			LIMIT 1',
+			array(
+				'draft' => $_POST['draft_id'],
+				'member' => $user_info['id'],
+			)
+		);
+	}
+
+]]></add>
+		</operation>
+		<operation><!-- save the draft! -->
+			<search position="end" />
+			<add><![CDATA[
+
+// Main draft saving function
+function saveDraft()
+{
+	global $context, $txt, $smcFunc, $topic, $board, $user_info;
+
+	if (!isset($_REQUEST['draft']) || $user_info['is_guest'] || !allowedTo('post_draft'))
+		return false;
+
+	// Clean up what we may or may not have
+	$subject = isset($_POST['subject']) ? $_POST['subject'] : '';
+	$message = isset($_POST['message']) ? $_POST['message'] : '';
+	$icon = isset($_POST['icon']) ? preg_replace('~[\./\\\\*:"\'<>]~', '', $_POST['icon']) : 'xx';
+
+	// Sanitise what we do have
+	$subject = $smcFunc['htmltrim']($smcFunc['htmlspecialchars']($subject));
+	$message = $smcFunc['htmlspecialchars']($message, ENT_QUOTES);
+	preparsecode($message);
+
+	if ($smcFunc['htmltrim']($smcFunc['htmlspecialchars']($subject)) === '' && $smcFunc['htmltrim']($smcFunc['htmlspecialchars']($_POST['message']), ENT_QUOTES) === '')
+		fatal_lang_error('empty_draft', false);
+
+	// Hrm, so is this a new draft or not?
+	if (isset($_REQUEST['draft_id']) && (int) $_REQUEST['draft_id'] > 0)
+	{
+		$_REQUEST['draft_id'] = (int) $_REQUEST['draft_id'];
+
+		// Does this draft exist?
+		$smcFunc['db_query']('', '
+			UPDATE {db_prefix}post_drafts
+			SET subject = {string:subject},
+				body = {string:body},
+				post_time = {int:post_time},
+				post_icon = {string:post_icon},
+				smileys_enabled = {int:smileys_enabled},
+				locked = {int:locked},
+				sticky = {int:sticky}			
+			WHERE id_draft = {int:draft}
+				AND id_board = {int:board}
+				AND id_topic = {int:topic}
+				AND id_member = {int:member}
+			LIMIT 1',
+			array(
+				'draft' => $_REQUEST['draft_id'],
+				'board' => $board,
+				'topic' => $topic,
+				'member' => $user_info['id'],
+				'subject' => $subject,
+				'body' => $message,
+				'post_time' => time(),
+				'post_icon' => $icon,
+				'smileys_enabled' => !isset($_POST['ns']) ? 1 : 0,
+				'locked' => isset($_POST['lock']) ? 1 : 0,
+				'sticky' => isset($_POST['sticky']) ? 1: 0,
+			)
+		);
+
+		if ($smcFunc['db_affected_rows']() != 0)
+			return $_REQUEST['draft_id'];
+	}
+
+	// Guess it is a new draft after all
+	$smcFunc['db_insert']('insert',
+		'{db_prefix}post_drafts',
+		array(
+			'id_board' => 'int',
+			'id_topic' => 'int',
+			'id_member' => 'int',
+			'subject' => 'string',
+			'body' => 'string',
+			'post_time' => 'int',
+			'post_icon' => 'string',
+			'smileys_enabled' => 'int',
+			'locked' => 'int',
+			'sticky' => 'int',
+		),
+		array(
+			$board,
+			$topic,
+			$user_info['id'],
+			$subject,
+			$message,
+			time(),
+			$icon,
+			!isset($_POST['ns']) ? 1 : 0,
+			isset($_POST['lock']) ? 1 : 0,
+			isset($_POST['sticky']) ? 1: 0,
+		),
+		array('id_draft')
+	);
+
+	return $smcFunc['db_insert_id']('{db_prefix}post_drafts');
+}
+
+// Output a block of XML that contains the details of our draft
+function draftXmlReturn($draft)
+{
+	if (empty($draft))
+		return;
+
+	global $txt, $context;
+	header('Content-Type: text/xml; charset=' . (empty($context['character_set']) ? 'ISO-8859-1' : $context['character_set']));
+	echo '<', '?xml version="1.0" encoding="', $context['character_set'], '"?', '>
+	<response>
+		<lastsave id="', $draft, '"><![CD', 'ATA[', $txt['last_saved_on'], ': ', timeformat(time()), ']', ']></lastsave>
+	</response>';
+
+	obExit(false);
+}
+
+]]></add>
+		</operation>
+	</file>
+
+	<file name="$themedir/Post.template.php">
+		<operation><!-- Add the template for 'Your post has been SAVED!' -->
+			<search position="end" />
+			<add><![CDATA[
+function template_draft_saved()
+{
+	global $context, $txt, $scripturl;
+
+	$profile_url = $scripturl . '?action=profile;u=' . $context['user']['id'];
+
+	echo '
+	<div id="fatal_error">
+		<div class="cat_bar">
+			<h3 class="catbg">
+				', $txt['draft_saved'], '
+			</h3>
+		</div>
+		<div class="windowbg">
+			<span class="topslice"><span></span></span>
+			<div class="padding">', sprintf($txt['draft_saved_full'], $profile_url . ';area=showposts;sa=drafts', $profile_url), '</div>
+			<span class="botslice"><span></span></span>
+		</div>
+	</div>';
+}
+
+]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[$context['locked'] ? '' : ' style="display: none"']]></search>
+			<add><![CDATA[!empty($context['draft_locked']) ? '' : ' style="display: none"']]></add>
+		</operation>
+	</file>
+
+	<file name="$sourcedir/Profile.php"><!-- add the menu item -->
+		<operation>
+			<search position="after"><![CDATA[	// Do some cleaning ready for the menu function.]]></search>
+			<add><![CDATA[	// Drafts?
+	if ($context['user']['is_owner'] && allowedTo('profile_view_own'))
+	{
+		$draft_boards = boardsAllowedTo('post_draft');
+		if (!empty($draft_boards))
+			$profile_areas['info']['areas']['showposts']['subsections']['drafts'] = array($txt['showDrafts'], 'profile_view_own');
+	}
+
+]]></add>
+		</operation>
+	</file>
+
+	<file name="$sourcedir/Profile-View.php"><!-- add the show drafts page -->
+		<operation><!-- interject into the showPosts routine -->
+			<search position="after"><![CDATA[	// Set the page title]]></search>
+			<add><![CDATA[	// Drafts?
+	if (!empty($context[$context['profile_menu_name']]['sections']['info']['areas']['showposts']['subsections']['drafts']))
+	{
+		// Ensure the tab is present
+		$context[$context['profile_menu_name']]['tab_data']['tabs']['drafts'] = array();
+		if (isset($_REQUEST['sa']) && $_REQUEST['sa'] == 'drafts')
+			return showDrafts($memID);
+	}
+
+]]></add>
+		</operation>
+		<operation>
+			<search position="end" />
+			<add><![CDATA[
+function showDrafts($memID)
+{
+	global $txt, $user_info, $scripturl, $modSettings;
+	global $context, $user_profile, $sourcedir, $smcFunc, $board;
+
+	// Are we deleting any drafts here?
+	if (!empty($_GET['delete']) && isset($_GET['topic']))
+	{
+		$draft_id = (int) $_GET['delete'];
+		$topic_id = (int) $_GET['topic'];
+		$start = isset($_GET['start']) ? (int) $_GET['start'] : 0;
+		checkSession('get');
+		
+		$smcFunc['db_query']('', '
+			DELETE FROM {db_prefix}post_drafts
+			WHERE id_topic = {int:topic}
+				AND id_draft = {int:draft}
+				AND id_member = {int:member}
+			LIMIT 1',
+			array(
+				'topic' => $topic_id,
+				'draft' => $draft_id,
+				'member' => $user_info['id'],
+			)
+		);
+
+		redirectexit('action=profile;u=' . $memID . ';area=showposts;sa=drafts;start=' . $start);
+	}
+
+	if (empty($_REQUEST['viewscount']) || !is_numeric($_REQUEST['viewscount']))
+		$_REQUEST['viewscount'] = '10';
+
+	// Get the count of applicable drafts
+	$request = $smcFunc['db_query']('', '
+		SELECT COUNT(id_draft)
+		FROM {db_prefix}post_drafts AS pd
+			INNER JOIN {db_prefix}boards AS b ON (b.id_board = pd.id_board AND {query_see_board})
+		WHERE id_member = {int:member}',
+		array(
+			'member' => $memID,
+		)
+	);
+	list ($msgCount) = $smcFunc['db_fetch_row']($request);
+	$smcFunc['db_free_result']($request);
+
+	$reverse = false;
+	$maxIndex = (int) $modSettings['defaultMaxMessages'];
+
+	// Make sure the starting place makes sense and construct our friend the page index.
+	$context['page_index'] = constructPageIndex($scripturl . '?action=profile;u=' . $memID . ';area=showposts;sa=drafts', $context['start'], $msgCount, $maxIndex);
+	$context['current_page'] = $context['start'] / $maxIndex;
+
+	// Reverse the query if we're past 50% of the pages for better performance.
+	$start = $context['start'];
+	$reverse = $_REQUEST['start'] > $msgCount / 2;
+	if ($reverse)
+	{
+		$maxIndex = $msgCount < $context['start'] + $modSettings['defaultMaxMessages'] + 1 && $msgCount > $context['start'] ? $msgCount - $context['start'] : (int) $modSettings['defaultMaxMessages'];
+		$start = $msgCount < $context['start'] + $modSettings['defaultMaxMessages'] + 1 || $msgCount < $context['start'] + $modSettings['defaultMaxMessages'] ? 0 : $msgCount - $context['start'] - $modSettings['defaultMaxMessages'];
+	}
+
+	// Find this user's drafts.
+	$request = $smcFunc['db_query']('', '
+		SELECT
+			b.id_board, b.name AS bname, pd.id_member, pd.id_draft,
+			pd.body, pd.smileys_enabled, pd.subject, pd.post_time, pd.post_icon, pd.id_topic, pd.locked, pd.sticky
+		FROM {db_prefix}post_drafts AS pd
+			INNER JOIN {db_prefix}boards AS b ON (b.id_board = pd.id_board AND {query_see_board})
+		WHERE pd.id_member = {int:current_member}
+		ORDER BY pd.id_draft ' . ($reverse ? 'ASC' : 'DESC') . '
+		LIMIT ' . $start . ', ' . $maxIndex,
+		array(
+			'current_member' => $memID,
+		)
+	);
+
+	// Start counting at the number of the first message displayed.
+	$counter = $reverse ? $context['start'] + $maxIndex + 1 : $context['start'];
+	$context['posts'] = array();
+	while ($row = $smcFunc['db_fetch_assoc']($request))
+	{
+		// Censor....
+		if (empty($row['body']))
+			$row['body'] = '';
+
+		$row['subject'] = $smcFunc['htmltrim']($row['subject']);
+		if (empty($row['subject']))
+			$row['subject'] = $txt['no_subject'];
+
+		censorText($row['body']);
+		censorText($row['subject']);
+
+		// Do the code.
+		$row['body'] = parse_bbc($row['body'], $row['smileys_enabled'], 'draft' . $row['id_draft']);
+
+		// And the array...
+		$context['posts'][$counter += $reverse ? -1 : 1] = array(
+			'body' => $row['body'],
+			'counter' => $counter,
+			'alternate' => $counter % 2,
+			'board' => array(
+				'name' => $row['bname'],
+				'id' => $row['id_board']
+			),
+			'topic' => array(
+				'id' => $row['id_topic'],
+				'link' => empty($row['id']) ? $row['subject'] : '<a href="' . $scripturl . '?topic=' . $row['id_topic'] . '.0">' . $row['subject'] . '</a>',
+			),
+			'subject' => $row['subject'],
+			'time' => timeformat($row['post_time']),
+			'timestamp' => forum_time(true, $row['post_time']),
+			'icon' => $row['post_icon'],
+			'id' => $row['id_draft'],
+			'locked' => $row['locked'],
+			'sticky' => $row['sticky'],
+		);
+	}
+	$smcFunc['db_free_result']($request);
+
+	// All posts were retrieved in reverse order, get them right again.
+	if ($reverse)
+		$context['posts'] = array_reverse($context['posts'], true);
+
+	$context['sub_template'] = 'showDrafts';
+}
+
+]]></add>
+		</operation>
+	</file>
+
+	<file name="$themedir/Profile.template.php"><!-- add the show-drafts template -->
+		<operation>
+			<search position="end" />
+			<add><![CDATA[
+function template_showDrafts()
+{
+	global $context, $settings, $options, $scripturl, $modSettings, $txt;
+
+	echo '
+		<div class="cat_bar">
+			<h3 class="catbg">
+				<span class="ie6_header floatleft"><img src="', $settings['images_url'], '/icons/im_newmsg.gif" alt="" class="icon" />
+					', $txt['showDrafts'], ' - ', $context['member']['name'], '
+				</span>
+			</h3>
+		</div>
+		<div class="pagesection">
+			<span>', $txt['pages'], ': ', $context['page_index'], '</span>
+		</div>';
+
+	// Button shortcuts
+	$edit_button = create_button('modify_inline.gif', 'edit_draft', 'edit_draft', 'align="middle"');
+	$remove_button = create_button('delete.gif', 'remove_draft', 'remove_draft', 'align="middle"');
+
+	// For every post to be displayed, give it its own subtable, and show the important details of the post.
+	foreach ($context['posts'] as $post)
+	{
+		echo '
+		<div class="topic">
+			<div class="', $post['alternate'] == 0 ? 'windowbg2' : 'windowbg', ' core_posts">
+				<span class="topslice"><span></span></span>
+				<div class="content">
+					<div class="counter">', $post['counter'], '</div>
+					<div class="topic_details">
+						<h5><strong><a href="', $scripturl, '?board=', $post['board']['id'], '.0">', $post['board']['name'], '</a> / ', $post['topic']['link'], '</strong> &nbsp; &nbsp;';
+
+		if (!empty($post['sticky']))
+			echo '<img src="', $settings['images_url'], '/icons/quick_sticky.gif" alt="', $txt['sticky_topic'], '" title="', $txt['sticky_topic'], '" />';
+
+		if (!empty($post['locked']))
+			echo '<img src="', $settings['images_url'], '/icons/quick_lock.gif" alt="', $txt['locked_topic'], '" title="', $txt['locked_topic'], '" />';
+
+		echo '
+						</h5>
+						<span class="smalltext">&#171;&nbsp;<strong>', $txt['on'], ':</strong> ', $post['time'], '&nbsp;&#187;</span>
+					</div>
+					<div class="list_posts">
+						', $post['body'], '
+					</div>
+				</div>
+				<div class="floatright">
+					<ul class="reset smalltext quickbuttons">
+						<li class="reply_button"><a href="', $scripturl . '?action=post;', (empty($post['topic']['id']) ? 'board=' . $post['board']['id'] : 'topic=' . $post['topic']['id']), '.0;draft;draft_id=', $post['id'], '"><span>', $txt['edit_draft'], '</span></a></li>
+						<li class="remove_button"><a href="', $scripturl, '?action=profile;u=', $context['member']['id'], ';area=showposts;sa=drafts;delete=', $post['id'], ';topic=', $post['topic']['id'], ';', $context['session_var'], '=', $context['session_id'], '" onclick="return confirm(\'', $txt['remove_message'], '?\');"><span>', $txt['remove_draft'], '</span></a></li>
+					</ul>
+				</div>
+				<br class="clear" />
+				<span class="botslice"><span></span></span>
+			</div>
+		</div>';
+	}
+
+	// No drafts? Just end the table with a informative message.
+	if (empty($context['posts']))
+		echo '
+		<div class="tborder windowbg2 padding centertext">
+			', $txt['show_drafts_none'], '
+		</div>';
+
+	// Show more page numbers.
+	echo '
+		<div class="pagesection" style="margin-bottom: 0;">
+			<span>', $txt['pages'], ': ', $context['page_index'], '</span>
+		</div>';
+}
+]]></add>
+		</operation>
+	</file>
+</modification>

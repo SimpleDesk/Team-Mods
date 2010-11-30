@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!DOCTYPE modification SYSTEM "http://www.simplemachines.org/xml/modification">
+
+<modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
+	<id>SimpleDeskTeam:BanFilter</id>
+	<version>1.0</version>
+
+	<file name="$languagedir/Modifications.english.php"><!-- add our new strings -->
+		<operation>
+			<search position="end" />
+			<add><![CDATA[
+$txt['errortype_ban'] = 'Bans';
+$txt['errortype_ban_desc'] = 'Attempts by banned users to access the forum and its facilities when not permitted to do so.';
+]]></add>
+		</operation>
+	</file>
+	<file name="$languagedir/Modifications.english-utf8.php" error="skip"><!-- add our new strings -->
+		<operation>
+			<search position="end" />
+			<add><![CDATA[
+$txt['errortype_ban'] = 'Bans';
+$txt['errortype_ban_desc'] = 'Attempts by banned users to access the forum and its facilities when not permitted to do so.';
+]]></add>
+		</operation>
+	</file>
+	<file name="$languagedir/ManageMaintenance.english.php" error="skip"><!-- fix the old language strings -->
+		<operation>
+			<search position="replace"><![CDATA[$txt['errortype_user_desc'] = 'Errors resulting from user errors.  Includes failed passwords, trying to login when banned, and trying to do an action for which they do not have permission.';]]></search>
+			<add><![CDATA[$txt['errortype_user_desc'] = 'Errors resulting from user errors.  Includes failed passwords and trying to do an action for which they do not have permission.';]]></add>
+		</operation>
+	</file>
+	<file name="$languagedir/ManageMaintenance.english-utf8.php" error="skip"><!-- fix the old language strings -->
+		<operation>
+			<search position="replace"><![CDATA[$txt['errortype_user_desc'] = 'Errors resulting from user errors.  Includes failed passwords, trying to login when banned, and trying to do an action for which they do not have permission.';]]></search>
+			<add><![CDATA[$txt['errortype_user_desc'] = 'Errors resulting from user errors.  Includes failed passwords and trying to do an action for which they do not have permission.';]]></add>
+		</operation>
+	</file>
+</modification>

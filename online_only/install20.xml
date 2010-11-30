@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!DOCTYPE modification SYSTEM "http://www.simplemachines.org/xml/modification">
+
+<modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
+	<id>SimpleDeskTeam:OnlineOnlyGroup</id>
+	<version>1.0</version>
+
+	<file name="$sourcedir/BoardIndex.php">
+		<operation>
+			<search position="replace"><![CDATA[	if (!empty($settings['show_group_key']))
+		$context['membergroups'] = cache_quick_get('membergroup_list', 'Subs-Membergroups.php', 'cache_getMembergroupList', array());]]></search>
+			<add><![CDATA[	if (!empty($settings['show_group_key']))
+		{
+			$context['membergroups'] = array();
+			foreach ($context['online_groups'] as $group)
+			{
+				if ($group['color'] != '' && $group['hidden'] == 0 && $group['id'] != 3) // so, has a colour, is visible and isn't Moderator
+					$context['membergroups'][] = '<a href="' . $scripturl . '?action=groups;sa=members;group=' . $group['id'] . '" style="color: ' . $group['color'] . '">' . $group['name'] . '</a>';
+			}
+		}]]></add>
+		</operation>
+	</file>
+	<file name="$sourcedir/Subs-MembersOnline.php">
+		<operation><!-- get extra info we didn't have before into the query -->
+			<search position="before"><![CDATA[mg.id_group, mg.group_name]]></search>
+			<add><![CDATA[, mg.hidden]]></add>
+		</operation>
+		<operation><!-- and provide it to our array later -->
+			<search position="before"><![CDATA['color' => $row['online_color']]]></search>
+			<add><![CDATA[,
+				'hidden' => $row['hidden']]]></add><!-- not adding a comma because the other one didn't -->
+		</operation>
+	</file>
+</modification>

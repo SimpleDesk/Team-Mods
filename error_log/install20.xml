@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!DOCTYPE modification SYSTEM "http://www.simplemachines.org/xml/modification">
+
+<modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
+	<id>SimpleDeskTeam:ErrorLogCounter</id>
+	<version>1.0</version>
+
+	<file name="$sourcedir/Subs.php">
+		<operation><!-- Figure out the number of items -->
+			<search position="end" />
+			<add><![CDATA[
+
+// SimpleDesk team: Error Log Counter
+function get_error_log_count_for_menu()
+{
+	global $context, $smcFunc;
+	if (!$context['user']['is_admin'])
+		return '';
+
+	if (!isset($context['num_errors_in_log']))
+	{
+		$query = $smcFunc['db_query']('', '
+			SELECT COUNT(id_error) AS errors
+			FROM {db_prefix}log_errors',
+			array()
+		);
+
+		if ($row = $smcFunc['db_fetch_row']($query))
+			$context['num_errors_in_log'] = $row[0] > 0 ? ' (<strong>' . $row[0] . '</strong>)' : '';
+		else
+			$context['num_errors_in_log'] = '';
+	}
+
+	return $context['num_errors_in_log'];
+}
+]]></add>
+		</operation>
+		<operation><!-- Add it to the menu item -->
+			<search position="replace"><![CDATA['title' => $txt['errlog'],]]></search>
+			<add><![CDATA['title' => $txt['errlog'] . get_error_log_count_for_menu(),]]></add>
+		</operation>
+	</file>
+
+	<file name="$sourcedir/Admin.php">
+		<operation><!-- Add to the logs menu too -->
+			<search position="replace"><![CDATA['errorlog' => array($txt['errlog'],]]></search>
+			<add><![CDATA['errorlog' => array($txt['errlog'] . get_error_log_count_for_menu(),]]></add>
+		</operation>
+	</file>
+</modification>

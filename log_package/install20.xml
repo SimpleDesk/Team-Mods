@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!DOCTYPE modification SYSTEM "http://www.simplemachines.org/xml/modification">
+
+<modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
+	<id>SimpleDeskTeam:LogPackage</id>
+	<version>1.0</version>
+
+	<file name="$sourcedir/Packages.php">
+		<operation>
+			<search position="after"><![CDATA[	// Clean house... get rid of the evidence ;).]]></search>
+			<add><![CDATA[	// Log this in the admin log.
+	logAction(
+		$context['uninstalling'] ? 'uninstall_package' : (!empty($is_upgrade) ? 'upgrade_package' : 'install_package'),
+		array(
+			'package' => $smcFunc['htmlspecialchars']($packageInfo['name']),
+			'version' => $smcFunc['htmlspecialchars']($packageInfo['version']),
+		),
+		'admin'
+	);
+
+]]></add>
+		</operation>
+	</file>
+</modification>

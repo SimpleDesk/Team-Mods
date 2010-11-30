@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!DOCTYPE package-info SYSTEM "http://www.simplemachines.org/xml/package-info">
+<package-info xmlns="http://www.simplemachines.org/xml/package-info" xmlns:smf="http://www.simplemachines.org/">
+	<id>SimpleDeskTeam:LogPackage</id>
+	<name>Log Package Installs</name>
+	<version>1.0</version>
+	<type>modification</type>
+
+	<install for="2.0 RC3">
+		<modification type="file">install20.xml</modification>
+		<modification type="file">english.xml</modification>
+		<modification type="file">english-british.xml</modification>
+	</install>
+	
+	<uninstall for="2.0 RC3">
+		<modification type="file" reverse="true">install20.xml</modification>
+		<modification type="file" reverse="true">english.xml</modification>
+		<modification type="file" reverse="true">english-british.xml</modification>
+	</uninstall>
+
+</package-info>
