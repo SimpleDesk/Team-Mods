@@ -7,40 +7,21 @@
 	<!-- Template files -->		
 	<file name="$themedir/MessageIndex.template.php">	
 		<operation>
-			<search position="replace"><![CDATA[$color_class = 'windowbg';]]></search>
-			<add><![CDATA[$color_class = 'windowbg';
-				
-			// Solved topics
-			if ($topic['is_solved'] && $topic['is_locked'])
-				$color_class = 'lockedbg solvedbg';
-			elseif ($topic['is_solved'])
-				$color_class = 'solvedbg';]]></add>
+			<search position="before"><![CDATA[// Some columns require a different shade of the color class.]]></search>
+			<add><![CDATA[
+			if (!empty($topic['is_solved']))
+				$color_class .= ' solvedbg';]]></add>
 		</operation>
 	</file>
-	<file name="$themedir/Display.template.php">	
-		<operation>
-			<search position="before"><![CDATA[// Show the anchor for the top and for the first message. If the first message is new, say so.]]></search>
-			<add><![CDATA[// Let them know that this is solved
-	if(!empty($modSettings['topicsolved_display_notice']) && $context['is_solved'] && $context['board_solve'])
-		echo'<br /><div class="information">', $txt['topicsolved_is_solved'], '</div>';]]></add>
-		</operation>
-		<operation>
-			<search position="after"><![CDATA[// Restore topic. eh?  No monkey business.]]></search>
-			<add><![CDATA[// Topic solved.
-	$mod_buttons = array_merge(array(
-		'solve' => array('test' => 'can_solve', 'text' => empty($context['is_solved']) ? 'solve_topic' : 'unsolve_topic', 'image' => empty($context['is_solved']) ? 'solve.gif' : 'unsolve.gif', 'lang' => true, 'url' => $scripturl . '?action=solve;topic=' . $context['current_topic'] . '.' . $context['start'] . ';' . $context['session_var'] . '=' . $context['session_id']),
-	),$mod_buttons);]]></add>
-		</operation>		
-	</file>		
 
 	<!-- Source files -->		
-	<file name="$boarddir/index.php">	
+	<file name="$boarddir/index.php"><!-- Adding the action. While it would be nice to use a hook, I don't want to include a file every page load for the sake of this one change. -->	
 		<operation>
 			<search position="after"><![CDATA[// Get the function and file to include - if it's not there, do the board index.]]></search>
 			<add><![CDATA[$actionArray['solve'] = array('SolveTopic.php', 'SolveTopic');]]></add>
 		</operation>
 	</file>
-	<file name="$sourcedir/Display.php">	
+	<file name="$sourcedir/Display.php"><!-- Lots to change, notably figuring out the permission for adding the button, plus loading all sorts of other stuff. -->
 		<operation>
 			<search position="replace"><![CDATA[foreach ($anyown_permissions as $contextual => $perm)
 		$context[$contextual] = allowedTo($perm . '_any') || ($context['user']['started'] && allowedTo($perm . '_own'));]]></search>
@@ -50,9 +31,12 @@
 	foreach ($anyown_permissions as $contextual => $perm)
 		$context[$contextual] = allowedTo($perm . '_any') || ($context['user']['started'] && allowedTo($perm . '_own'));
 		
-	// Topic solved. Is this one of THE boards?
+	// Topic solved stuff. Is this one of THE boards?
+	loadTemplate('SolveTopic-Display');
 	$context['board_solve'] = !empty($modSettings['topicsolved_board_' . $board]);
 	$context['can_solve'] &= $context['board_solve'];
+	if (!empty($modSettings['topicsolved_display_notice']) && $context['is_solved'] && $context['board_solve'])
+		$context['template_layers'][] = 'topicsolved_header';
 ]]></add>
 		</operation>
 		<operation>
@@ -65,36 +49,36 @@
 	$context['is_solved'] = $topicinfo['solved'];]]></add>
 		</operation>		
 	</file>	
-	<file name="$sourcedir/Subs.php">	
+	<file name="$sourcedir/Subs.php"><!-- Add the topic solved log to the list of possible log types we can handle. -->
 		<operation>
 			<search position="after"><![CDATA[if (!is_array($extra))]]></search>
 			<add><![CDATA[// Solved log
-	$log_types = array_merge($log_types,array('solve' => 4));]]></add>
+	$log_types['solve'] = 4;]]></add>
 		</operation>	
 	</file>		
-	<file name="$sourcedir/ModLog.php">	
+	<file name="$sourcedir/Modlog.php"><!-- Extend the moderation log to support the topic solving too. -->
 		<operation>
 			<search position="before"><![CDATA[isAllowedTo('admin_forum');]]></search>
 			<add><![CDATA[// Topic solved log
 	$context['log_type'] = isset($_REQUEST['sa']) && $_REQUEST['sa'] == 'solvelog' ? 4 : $context['log_type'];
 	
 	// Make sure the solve log is enabled.
-	if($context['log_type'] == 4 && empty($modSettings['enable_solved_log']))
+	if ($context['log_type'] == 4 && empty($modSettings['enable_solved_log']))
 		redirectexit('action=moderate');]]></add>
 		</operation>
 		<operation>
 			<search position="after"><![CDATA[// The number of entries to show per page of log file.]]></search>
 			<add><![CDATA[// Topic solved log: Override page_title and url_starts if required.
-	if($context['log_type'] == 4)
+	if ($context['log_type'] == 4)
 	{
-		$context['page_title'] = 'Solve log';	
+		$context['page_title'] = $txt['modlog_solve_log'];	
 		$context['url_start'] = '?action=moderate;area=modlog;sa=solvelog;type=4';		
 	}]]></add>
 		</operation>	
 		<operation>
 			<search position="after"><![CDATA[// Create the watched user list.]]></search>
 			<add><![CDATA[// Topic solved log: Override some list data before we create it.
-	if($context['log_type'] == 4)
+	if ($context['log_type'] == 4)
 	{
 		$listOptions['title'] = '<a href="' . $scripturl . '?action=helpadmin;help=solve_log_help" onclick="return reqWin(this.href);" class="help"><img src="' . $settings['images_url'] . '/helptopics.gif" alt="' . $txt['help'] . '" align="top" /></a> ' . $txt['modlog_solve_log'];
 		$listOptions['additional_rows'][0]['value'] = $txt['modlog_solve_log_desc'];
@@ -102,22 +86,11 @@
 	}]]></add>
 		</operation>		
 	</file>	
-	<file name="$sourcedir/Admin.php">	
-		<operation>
-			<search position="before"><![CDATA['pruning' => array($txt['pruning_title'], 'admin_forum'),]]></search>
-			<add><![CDATA['solvelog' => array($txt['modlog_solve_log'], 'moderate_forum', 'enabled' => !empty($modSettings['enable_solved_log']), 'url' => $scripturl . '?action=moderate;area=modlog;sa=solvelog'),]]></add>
-		</operation>
-		<operation>
-			<search position="before"><![CDATA[// Mod Authors for a "ADD AFTER" on this line. Ensure you end your change with a comma. For example:]]></search>
-			<add><![CDATA[
-			'topicsolved' => array($txt['topic_solved_title']),]]></add>
-		</operation>		
-	</file>	
-	<file name="$sourcedir/ModerationCenter.php">	
+	<file name="$sourcedir/ModerationCenter.php"><!-- Provide access from the moderation center to the moderation log for topic solving. -->
 		<operation>
 			<search position="after"><![CDATA['notice' => array(]]></search>
 			<add><![CDATA['solvelog' => array(
-					'enabled' => !empty($modSettings['enable_solved_log']),
+					'enabled' => !empty($modSettings['enable_solved_log']) && in_array('ml', $context['admin_features']),
 					'label' => $txt['modlog_solve_log'],
 					'file' => 'Modlog.php',
 					'function' => 'ViewModlog',
@@ -125,74 +98,7 @@
 				),]]></add>
 		</operation>	
 	</file>	
-	<file name="$sourcedir/ManagePermissions.php">	
-		<operation>
-			<search position="before"><![CDATA[// All permission groups that will be shown in the left column on classic view.
-]]></search>
-			<add><![CDATA[$permissionList['board']['solve_topic'] = array(true, 'topic', 'moderate', 'moderate');]]></add>
-		</operation>	
-	</file>
-	<file name="$sourcedir/ManageSettings.php">	
-		<operation>
-			<search position="after"><![CDATA[// Mod authors, once again, if you have a whole section to add do it AFTER this line, and keep a comma at the end.]]></search>
-			<add><![CDATA['topicsolved' => 'ModifyTopicSolvedSettings',]]></add>
-		</operation>	
-		<operation>
-			<search position="end" />
-			<add><![CDATA[// Topic solved mod
-function ModifyTopicSolvedSettings($return_config = false)
-{
-	global $txt, $scripturl, $context, $settings, $sc, $modSettings, $smcFunc;
-	
-	$query = $smcFunc['db_query']('', '
-		SELECT id_board, id_cat, child_level, name FROM {db_prefix}boards ORDER BY board_order ASC
-	');
-	
-	$config_vars = array();
-	$last = -1;
-	
-	$config_vars[] = array('check', 'enable_solved_log');
-	$config_vars[] = array('check', 'topicsolved_highlight');
-	$config_vars[] = array('text', 'topicsolved_highlight_col1', 'size' => 10, 'disabled' => empty($modSettings['topicsolved_highlight']));
-	$config_vars[] = array('text', 'topicsolved_highlight_col2', 'size' => 10, 'disabled' => empty($modSettings['topicsolved_highlight']));
-	$config_vars[] = array('check', 'topicsolved_display_notice');
-	$config_vars[] = '';	
-	$config_vars[] = array('message', 'topicsolved_board_desc');
-
-	while($row = $smcFunc['db_fetch_assoc']($query)) {
-		if($row['id_cat'] != $last && $last != -1) {
-			$config_vars[] = '';
-		}
-		$board_id = 'topicsolved_board_' . $row['id_board'];
-		$txt[$board_id] = (($row['child_level'] > 0) ? str_repeat('&nbsp; &nbsp; ', $row['child_level']) : '') . $row['name'];
-		$config_vars[] = array('check', $board_id);
-		$last = $row['id_cat'];
-	}
-	
-	$smcFunc['db_free_result']($query);	
-
-	if ($return_config)
-		return $config_vars;
-
-	$context['post_url'] = $scripturl . '?action=admin;area=modsettings;save;sa=topicsolved';
-	$context['settings_title'] = $txt['topic_solved_title'];
-
-	// Saving?
-	if (isset($_GET['save']))
-	{
-		checkSession();
-
-		$save_vars = $config_vars;
-		saveDBSettings($save_vars);
-		
-		redirectexit('action=admin;area=modsettings;sa=topicsolved');
-	}
-
-	prepareDBSettingContext($config_vars);
-}]]></add>
-		</operation>		
-	</file>	
-	<file name="$sourcedir/MessageIndex.php">	
+	<file name="$sourcedir/MessageIndex.php"><!-- Be sure to get the topic data, to be able to display whether something is solved or not. -->
 		<operation>
 			<search position="after"><![CDATA[determineTopicClass($context['topics'][$row['id_topic']]);]]></search>
 			<add><![CDATA[// Topic solved highlighting, if enabled.
@@ -200,25 +106,31 @@ function ModifyTopicSolvedSettings($return_config = false)
 			]]></add>
 		</operation>
 		<operation>
-			<search position="before"><![CDATA[SUBSTRING(mf.body, 1, 385) AS first_body, ml.smileys_enabled AS last_smileys, mf.smileys_enabled AS first_smileys]]></search>
+			<search position="before"><![CDATA[mf.smileys_enabled AS first_smileys]]></search>
 			<add><![CDATA[, t.solved]]></add>
 		</operation>
 		<operation>
 			<search position="after"><![CDATA[// Begin 'printing' the message index for current board.]]></search>
 			<add><![CDATA[// Is this board solvable?
 		$context['board_solve'] = !empty($modSettings['topicsolved_board_' . $board]);
-		if (!empty($modSettings['topicsolved_highlight']))
+		if (!empty($modSettings['topicsolved_highlight']) && !empty($modSettings['topicsolved_highlight_col1']) && !empty($modSettings['topicsolved_highlight_col2']))
 		{
-			if (!empty($modSettings['topicsolved_highlight_col1']) && !empty($modSettings['topicsolved_highlight_col2']))
-			{
-				if (empty($context['html_headers']))
-					$context['html_headers'] = '';
-				$context['html_headers'] .= '<style type="text/css">/* Topic solved */ .solvedbg { background:' . $modSettings['topicsolved_highlight_col1'] . '; } .solvedbg2 { background:' . $modSettings['topicsolved_highlight_col2'] . '; }</style>';
-			}
+			if (empty($context['html_headers']))
+				$context['html_headers'] = '';
+			$context['html_headers'] .= '<style type="text/css">/* Topic solved */ .solvedbg { background:' . $modSettings['topicsolved_highlight_col1'] . '; } .solvedbg2 { background:' . $modSettings['topicsolved_highlight_col2'] . '; }</style>';
 		}
 
 		]]></add>
 		</operation>
-	</file>	
-
+	</file>
+	<file name="$boarddir/SSI.php"><!-- Make sure the topic solved icon is actually added to the SSI functions too. Same code, used twice. -->
+		<operation>
+			<search position="replace"><![CDATA[$stable_icons = array('xx']]></search>
+			<add><![CDATA[$stable_icons = array('solved', 'xx']]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[$stable_icons = array('xx']]></search>
+			<add><![CDATA[$stable_icons = array('solved', 'xx']]></add>
+		</operation>
+	</file>
 </modification>

@@ -21,6 +21,8 @@ $txt['solve_log_help'] = '<strong>Topic solved log</strong><br />This section al
 $txt['permissionname_solve_topic'] = 'Mark topics solved/not solved';
 $txt['permissionname_solve_topic_any'] = 'Any topic';
 $txt['permissionname_solve_topic_own'] = 'Own topic';
+$txt['cannot_solve_topic_any'] = 'You do not have permission to mark topics solved.';
+$txt['cannot_solve_topic_own'] = 'You do not have permission to mark topics solved.';
 $txt['permissionhelp_solve_topic'] = 'This permission will allow the user to mark topics as solved and not solved.';
 $txt['enable_solved_log'] = 'Enable logging of topic solving (Requires moderation logging to be enabled)';
 $txt['topicsolved_board_desc'] = '<span class="smalltext">Please select the boards you wish to enable the topic solved feature in.</span>';
@@ -46,8 +48,10 @@ $txt['modlog_solve_log_desc'] = 'Below is a list of all topics that have been so
 $txt['modlog_solve_log_no_entries_found'] = 'There are currently no entries in the topic solved log.';
 $txt['solve_log_help'] = '<strong>Topic solved log</strong><br />This section allows members of the moderation team to track all usage of the topic solved/not solved feature. To ensure that moderators cannot remove references to the actions they have performed, entries may not be deleted until 24 hours after the action was taken.';
 $txt['permissionname_solve_topic'] = 'Mark topics solved/not solved';
-$txt['permissionname_solve_topic_any'] = 'Any topic';
-$txt['permissionname_solve_topic_own'] = 'Own topic';
+$txt['permissionname_solve_topic_any'] = 'Any topics';
+$txt['permissionname_solve_topic_own'] = 'Own topics';
+$txt['cannot_solve_topic_any'] = 'You do not have permission to mark topics solved.';
+$txt['cannot_solve_topic_own'] = 'You do not have permission to mark topics solved.';
 $txt['permissionhelp_solve_topic'] = 'This permission will allow the user to mark topics as solved and not solved.';
 $txt['enable_solved_log'] = 'Enable logging of topic solving';
 $txt['topicsolved_board_desc'] = '<span class="smalltext">Please select the boards you wish to enable the topic solved feature in.</span>';
@@ -57,5 +61,4 @@ $txt['topicsolved_is_solved'] = '<strong style="color: green;">Topic solved</str
 $txt['topicsolved_not_enabled'] = 'Topic solved is not enabled on this board.';]]></add>
 		</operation>
 	</file>
-
 </modification>

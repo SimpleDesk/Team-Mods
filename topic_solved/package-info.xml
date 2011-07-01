@@ -10,14 +10,21 @@
 		<modification>install2.0.xml</modification>
 		<modification>english.xml</modification>
 		<require-file name="SolveTopic.php" destination="$sourcedir" />
+		<require-file name="SolveTopic-Admin.php" destination="$sourcedir" />
 		<require-file name="solved.gif" destination="$imagesdir/post" />
+		<require-file name="SolveTopic-Display.template.php" destination="$themes_dir/default" />
 		<database>install.php</database>
+		<redirect url="?action=admin;area=modsettings;sa=topicsolved" />
 	</install>
 	<uninstall for="2.0-2.99.99">
+		<database>uninstall-optional.php</database>
+		<code>uninstall-required.php</code>
 		<readme type="inline">This will uninstall the Topic Solved Mod. Thanks for using this customization.</readme>			
 		<modification reverse="true">install2.0.xml</modification>	
 		<modification reverse="true">english.xml</modification>
 		<remove-file name="$sourcedir/SolveTopic.php" />
+		<remove-file name="$sourcedir/SolveTopic-Admin.php" />
 		<remove-file name="$imagesdir/post/solved.gif" />
+		<remove-file name="$themes_dir/default/SolveTopic-Display.template.php" />
 	</uninstall>	
 </package-info>

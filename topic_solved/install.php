@@ -2,7 +2,7 @@
 
 if (file_exists(dirname(__FILE__) . '/SSI.php') && !defined('SMF'))
 	require_once(dirname(__FILE__) . '/SSI.php');
-elseif(!defined('SMF')) // If we are outside SMF and can't find SSI.php, then throw an error
+elseif (!defined('SMF')) // If we are outside SMF and can't find SSI.php, then throw an error
 	die('<b>Error:</b> Cannot install - please verify you put this file in the same place as SMF\'s SSI.php.');
 	
 global $smcFunc;	
@@ -21,16 +21,21 @@ if (empty($modSettings['topicsolved_highlight_col1']))
 		updateSettings(array($key => $value));
 }
 
-$check = $smcFunc['db_list_columns']('{db_prefix}topics');
-
-if (!in_array('solved', $check))
-	$smcFunc['db_add_column']('{db_prefix}topics', array('name' => 'solved', 'type' => 'tinyint', 'size' => 4));	
+$smcFunc['db_add_column']('{db_prefix}topics', array('name' => 'solved', 'type' => 'tinyint', 'size' => 3, 'unsigned' => true));	
 	
 $installed = $smcFunc['db_list_columns']('{db_prefix}topics');
 
-if (in_array('solved', $installed))
-	echo'Database edits completed!';
-else
-	echo'Database edits failed!';
+add_integration_function('integrate_mod_buttons', 'add_topicsolved_button', true);
+add_integration_function('integrate_admin_include', '$sourcedir/SolveTopic-Admin.php', true);
+add_integration_function('integrate_modify_modifications', 'add_ts_settings_menu', true);
+add_integration_function('integrate_admin_areas', 'add_ts_adminmenu', true);
+
+if (SMF == 'SSI')
+{
+	if (in_array('solved', $installed))
+		echo 'Database edits completed!';
+	else
+		echo 'Database edits failed!';
+}
 	
 ?>

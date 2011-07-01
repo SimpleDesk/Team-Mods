@@ -50,9 +50,9 @@ function SolveTopic()
 	// Youcansolvez?
 	$user_solve = !allowedTo('solve_topic_any', $board);
 	if ($user_solve && $starter == $user_info['id'])
-		isAllowedTo('solve_own', $board);
+		isAllowedTo('solve_topic_own', $board);
 	else
-		isAllowedTo('solve_any', $board);
+		isAllowedTo('solve_topic_any', $board);
 
 	// Mark the topic solved in the database. Simple enough.
 	$smcFunc['db_query']('', '
@@ -78,7 +78,7 @@ function SolveTopic()
 	
 	// Log this solve. if enabled.
 	if(!empty($modSettings['enable_solved_log']))
-		logAction(empty($solved) ? 'solve' : 'unsolve', array('topic' => $topic, 'board' => $board, 'member' => $starter),'solve');
+		logAction(empty($solved) ? 'solve' : 'unsolve', array('topic' => $topic, 'board' => $board, 'member' => $starter), 'solve');
 
 	// Let's go back home.
 	redirectexit('topic=' . $topic . '.' . $_REQUEST['start'] . (WIRELESS ? ';moderate' : ''));
