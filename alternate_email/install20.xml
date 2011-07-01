@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!DOCTYPE modification SYSTEM "http://www.simplemachines.org/xml/modification">
+
+<modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
+	<id>SimpleDeskTeam:AlternateEmail</id>
+	<version>1.0</version>
+
+	<file name="$sourcedir/ManageServer.php"><!-- Add the help information -->
+		<operation>
+			<search position="before"><![CDATA[		array('webmaster_email', $txt['admin_webmaster_email'], 'file', 'text', 30),]]></search>
+			<add><![CDATA[
+		array('mail_from', $txt['mail_from'], 'db', 'text', 30),]]></add>
+		</operation>
+	</file>
+</modification>
