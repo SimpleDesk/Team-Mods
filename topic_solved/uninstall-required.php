@@ -10,6 +10,7 @@ remove_integration_function('integrate_mod_buttons', 'add_topicsolved_button');
 remove_integration_function('integrate_admin_include', '$sourcedir/SolveTopic-Admin.php');
 remove_integration_function('integrate_modify_modifications', 'add_ts_settings_menu');
 remove_integration_function('integrate_admin_areas', 'add_ts_adminmenu');
+remove_integration_function('integrate_load_permissions', 'add_ts_permissions');
 
 if (SMF == 'SSI')
 {

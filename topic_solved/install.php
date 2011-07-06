@@ -29,6 +29,7 @@ add_integration_function('integrate_mod_buttons', 'add_topicsolved_button', true
 add_integration_function('integrate_admin_include', '$sourcedir/SolveTopic-Admin.php', true);
 add_integration_function('integrate_modify_modifications', 'add_ts_settings_menu', true);
 add_integration_function('integrate_admin_areas', 'add_ts_adminmenu', true);
+add_integration_function('integrate_load_permissions', 'add_ts_permissions', true);
 
 if (SMF == 'SSI')
 {
