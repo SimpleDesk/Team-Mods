@@ -21,7 +21,7 @@ if (empty($modSettings['topicsolved_highlight_col1']))
 		updateSettings(array($key => $value));
 }
 
-$smcFunc['db_add_column']('{db_prefix}topics', array('name' => 'solved', 'type' => 'tinyint', 'size' => 3, 'unsigned' => true));	
+$smcFunc['db_add_column']('{db_prefix}topics', array('name' => 'solved', 'type' => 'tinyint', 'size' => 3, 'default' => 0, 'unsigned' => true));	
 	
 $installed = $smcFunc['db_list_columns']('{db_prefix}topics');
 
