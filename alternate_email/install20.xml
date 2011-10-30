@@ -3,7 +3,7 @@
 
 <modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
 	<id>SimpleDeskTeam:AlternateEmail</id>
-	<version>1.0</version>
+	<version>1.1</version>
 
 	<file name="$sourcedir/ManageServer.php"><!-- Add the help information -->
 		<operation>
