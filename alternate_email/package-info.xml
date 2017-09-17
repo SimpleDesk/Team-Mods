@@ -3,15 +3,15 @@
 <package-info xmlns="http://www.simplemachines.org/xml/package-info" xmlns:smf="http://www.simplemachines.org/">
 	<id>SimpleDeskTeam:AlternateEmail</id>
 	<name>Alternate Email</name>
-	<version>1.0</version>
+	<version>1.1</version>
 	<type>modification</type>
 
-	<install for="2.0 RC3, 2.0 RC4, 2.0 RC5, 2.0">
+	<install for="2.0 RC3, 2.0 RC4, 2.0 RC5, 2.0, 2.0.1">
 		<modification format="xml" type="file">install20.xml</modification>
 		<modification format="xml" type="file">english.xml</modification>
 	</install>
 	
-	<uninstall for="2.0 RC3, 2.0 RC4, 2.0 RC5, 2.0">
+	<uninstall for="2.0 RC3, 2.0 RC4, 2.0 RC5, 2.0, 2.0.1">
 		<modification format="xml" type="file" reverse="true">install20.xml</modification>
 		<modification format="xml" type="file" reverse="true">english.xml</modification>
 	</uninstall>
