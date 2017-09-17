@@ -3,9 +3,9 @@
 <package-info xmlns="http://www.simplemachines.org/xml/package-info" xmlns:smf="http://www.simplemachines.org/">
 	<id>SimpleDesk:Topic_Solved_Mod</id>
 	<name>Topic Solved Mod</name>
-	<version>1.0</version>
+	<version>1.1</version>
 	<type>modification</type>
-	<install for="2.0-2.99.99">
+	<install for="2.0-2.0.99">
 		<readme type="file" parsebbc="true">readme.txt</readme>	
 		<modification>install2.0.xml</modification>
 		<modification>english.xml</modification>
@@ -13,12 +13,12 @@
 		<require-file name="SolveTopic-Admin.php" destination="$sourcedir" />
 		<require-file name="solved.gif" destination="$imagesdir/post" />
 		<require-file name="SolveTopic-Display.template.php" destination="$themes_dir/default" />
-		<database>install.php</database>
+		<database>install-2.0.php</database>
 		<redirect url="?action=admin;area=modsettings;sa=topicsolved" />
 	</install>
-	<uninstall for="2.0-2.99.99">
+	<uninstall for="2.0-2.0.99">
 		<database>uninstall-optional.php</database>
-		<code>uninstall-required.php</code>
+		<code>uninstall-required-2.0.php</code>
 		<readme type="inline">This will uninstall the Topic Solved Mod. Thanks for using this customization.</readme>			
 		<modification reverse="true">install2.0.xml</modification>	
 		<modification reverse="true">english.xml</modification>
@@ -27,4 +27,63 @@
 		<remove-file name="$imagesdir/post/solved.gif" />
 		<remove-file name="$themes_dir/default/SolveTopic-Display.template.php" />
 	</uninstall>	
+
+	<install for="2.1 Beta 3, 2.1 Beta 4, 2.1 RC1">
+		<readme type="file" parsebbc="true">readme.txt</readme>	
+		<modification>english.xml</modification>
+		<require-file name="SolveTopic.php" destination="$sourcedir" />
+		<require-file name="SolveTopic-Admin.php" destination="$sourcedir" />
+		<require-file name="solved.png" destination="$imagesdir/post" />
+		<require-file name="SolveTopic-Display.template.php" destination="$themes_dir/default" />
+		<database>install-2.1.php</database>
+		<redirect url="?action=admin;area=modsettings;sa=topicsolved" />
+
+		<hook function="integrate_pre_load_solveTopic" hook="integrate_pre_load" file="$sourcedir/SolveTopic.php" />
+		<hook hook="integrate_admin_include" file="$sourcedir/SolveTopic-Admin.php" />
+		<hook function="add_ts_settings_menu" hook="integrate_modify_modifications" file="$sourcedir/SolveTopic-Admin.php" />
+		<hook function="add_ts_adminmenu" hook="integrate_admin_areas" file="$sourcedir/SolveTopic-Admin.php" />
+		<hook function="add_ts_permissions" hook="integrate_load_permissions" file="$sourcedir/SolveTopic.php" />
+
+		<hook function="integrate_actions_solveTopic" hook="integrate_actions" file="$sourcedir/SolveTopic.php" />
+		<hook function="integrate_moderate_areas_solveTopic" hook="integrate_moderate_areas" file="$sourcedir/SolveTopic.php" />
+
+		<hook function="integrate_display_buttons_solveTopic" hook="integrate_display_buttons" file="$sourcedir/SolveTopic.php" />
+		<hook function="integrate_display_topic_solveTopic" hook="integrate_display_topic" file="$sourcedir/SolveTopic.php" />
+
+
+		<hook function="integrate_message_index_solveTopic" hook="integrate_message_index" file="$sourcedir/SolveTopic.php" />
+		<hook function="integrate_messageindex_buttons_solveTopic" hook="integrate_messageindex_buttons" file="$sourcedir/SolveTopic.php" />
+
+		<hook function="integrate_log_types_solveTopic" hook="integrate_log_types" file="$sourcedir/SolveTopic.php" />
+		<hook function="integrate_viewModLog_solveTopic" hook="integrate_viewModLog" file="$sourcedir/SolveTopic-Admin.php" />
+
+	</install>
+	<uninstall for="2.1 Beta 3, 2.1 Beta 4, 2.1 RC1">
+		<database>uninstall-optional.php</database>
+		<readme type="inline">This will uninstall the Topic Solved Mod. Thanks for using this customization.</readme>			
+		<modification reverse="true">english.xml</modification>
+		<remove-file name="$sourcedir/SolveTopic.php" />
+		<remove-file name="$sourcedir/SolveTopic-Admin.php" />
+		<remove-file name="$imagesdir/post/solved.png" />
+		<remove-file name="$themes_dir/default/SolveTopic-Display.template.php" />
+
+		<hook function="integrate_pre_load_solveTopic" hook="integrate_pre_load" file="$sourcedir/SolveTopic.php" reverse="true" />
+		<hook hook="integrate_admin_include" file="$sourcedir/SolveTopic-Admin.php" reverse="true" />
+		<hook function="add_ts_settings_menu" hook="integrate_modify_modifications" file="$sourcedir/SolveTopic-Admin.php" reverse="true" />
+		<hook function="add_ts_adminmenu" hook="integrate_admin_areas" file="$sourcedir/SolveTopic-Admin.php" reverse="true" />
+		<hook function="add_ts_permissions" hook="integrate_load_permissions" file="$sourcedir/SolveTopic.php" reverse="true" />
+
+		<hook function="integrate_actions_solveTopic" hook="integrate_actions" file="$sourcedir/SolveTopic.php" reverse="true" />
+		<hook function="integrate_moderate_areas_solveTopic" hook="integrate_moderate_areas" file="$sourcedir/SolveTopic.php" reverse="true" />
+
+		<hook function="integrate_display_buttons_solveTopic" hook="integrate_display_buttons" file="$sourcedir/SolveTopic.php" reverse="true" />
+		<hook function="integrate_display_topic_solveTopic" hook="integrate_display_topic" file="$sourcedir/SolveTopic.php" reverse="true" />
+
+		<hook function="integrate_message_index_solveTopic" hook="integrate_message_index" file="$sourcedir/SolveTopic.php" reverse="true" />
+		<hook function="integrate_messageindex_buttons_solveTopic" hook="integrate_messageindex_buttons" file="$sourcedir/SolveTopic.php" reverse="true" />
+
+		<hook function="integrate_log_types_solveTopic" hook="integrate_log_types" file="$sourcedir/SolveTopic.php" reverse="true" />
+		<hook function="integrate_viewModLog_solveTopic" hook="integrate_viewModLog" file="$sourcedir/SolveTopic-Admin.php" reverse="true" />
+	</uninstall>	
+
 </package-info>

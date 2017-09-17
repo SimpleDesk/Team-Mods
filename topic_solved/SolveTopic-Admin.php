@@ -16,7 +16,12 @@ function add_ts_permissions(&$permissionGroups, &$permissionList, &$leftPermissi
 function add_ts_adminmenu(&$admin_areas)
 {
 	global $txt, $context, $modSettings, $scripturl;
-	$admin_areas['maintenance']['areas']['logs']['subsections']['solvelog'] = array($txt['modlog_solve_log'], 'moderate_forum', 'enabled' => !empty($modSettings['enable_solved_log']) && in_array('ml', $context['admin_features']), 'url' => $scripturl . '?action=moderate;area=modlog;sa=solvelog');
+
+	// If this is 2.1, we don't check admin_features
+	if (function_exists('loadCacheAccelerator'))
+		$admin_areas['maintenance']['areas']['logs']['subsections']['solvelog'] = array($txt['modlog_solve_log'], 'moderate_forum', 'enabled' => !empty($modSettings['enable_solved_log']), 'url' => $scripturl . '?action=moderate;area=modlog;sa=solvelog');
+	else
+		$admin_areas['maintenance']['areas']['logs']['subsections']['solvelog'] = array($txt['modlog_solve_log'], 'moderate_forum', 'enabled' => !empty($modSettings['enable_solved_log']) && in_array('ml', $context['admin_features']), 'url' => $scripturl . '?action=moderate;area=modlog;sa=solvelog');
 	$admin_areas['config']['areas']['modsettings']['subsections']['topicsolved'] = array($txt['topic_solved_title']);
 }
 
@@ -32,7 +37,7 @@ function ModifyTopicSolvedSettings($return_config = false)
 	$last = -1;
 	
 	$config_vars = array(
-		array('check', 'enable_solved_log', 'disabled' => !in_array('ml', $context['admin_features'])),
+		array('check', 'enable_solved_log', 'disabled' => function_exists('loadCacheAccelerator') ? false : !in_array('ml', $context['admin_features'])),
 		array('check', 'topicsolved_highlight'),
 		array('text', 'topicsolved_highlight_col1', 'size' => 10, 'disabled' => empty($modSettings['topicsolved_highlight'])),
 		array('text', 'topicsolved_highlight_col2', 'size' => 10, 'disabled' => empty($modSettings['topicsolved_highlight'])),
@@ -71,6 +76,36 @@ function ModifyTopicSolvedSettings($return_config = false)
 	}
 
 	prepareDBSettingContext($config_vars);
+}
+
+/**
+ *	Adds Topic Solved to our Moderation Log.
+ *
+ *	@param string &$listOptions The list options for our moderation log.
+ *	@param string &$moderation_menu_name Normally empty, but we fill it here with our new menu link.
+ *
+ *	@since 2.0
+*/
+function integrate_viewModLog_solveTopic(&$listOptions, $moderation_menu_name)
+{
+	global $context, $modSettings, $scripturl, $txt, $settings;
+
+	// Topic solved log
+	$context['log_type'] = isset($_REQUEST['sa']) && $_REQUEST['sa'] == 'solvelog' ? 4 : $context['log_type'];
+	
+	// Make sure the solve log is enabled.
+	if ($context['log_type'] == 4 && empty($modSettings['enable_solved_log']))
+		redirectexit('action=moderate');
+	elseif ($context['log_type'] != 4)
+		return false;
+
+	// At this point, we are certain to be on the solved topic section.
+	$context['page_title'] = $txt['modlog_solve_log'];	
+	$context['url_start'] = '?action=moderate;area=modlog;sa=solvelog;type=4';		
+
+	$listOptions['title'] = '<a href="' . $scripturl . '?action=helpadmin;help=solve_log_help" onclick="return reqWin(this.href);" class="help"><img src="' . $settings['images_url'] . '/helptopics.gif" alt="' . $txt['help'] . '" align="top" /></a> ' . $txt['modlog_solve_log'];
+	$listOptions['additional_rows'][0]['value'] = $txt['modlog_solve_log_desc'];
+	$listOptions['no_items_label'] = $txt['modlog_solve_log_no_entries_found'];
 }
 
 ?>

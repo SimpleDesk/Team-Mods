@@ -35,7 +35,9 @@ $txt['topicsolved_highlight_col1'] = 'Color for highlighted solved topics (light
 $txt['topicsolved_highlight_col2'] = 'Color for highlighted solved topics (darker columns, such as subject/started by)';
 $txt['topicsolved_display_notice'] = 'Display a notice inside of solved topics';
 $txt['topicsolved_is_solved'] = '<strong style="color: green;">Topic solved</strong><br />This topic is marked as solved and as such require no attention unless you want to bump this issue.';
-$txt['topicsolved_not_enabled'] = 'Topic solved is not enabled on this board.';]]></add>
+$txt['topicsolved_not_enabled'] = 'Topic solved is not enabled on this board.';
+$txt['cannot_solve_own'] = 'You can not mark your own topics as solved';
+$txt['cannot_solve_any'] = 'You can not mark just any topic as solved';]]></add>
 		</operation>
 	</file>
 	<file name="$languagedir/Modifications.english-utf8.php" error="skip">	
