@@ -38,25 +38,26 @@
 		<database>install-2.1.php</database>
 		<redirect url="?action=admin;area=modsettings;sa=topicsolved" />
 
+		<!-- Core Startup -->
 		<hook function="integrate_pre_load_solveTopic" hook="integrate_pre_load" file="$sourcedir/SolveTopic.php" />
-		<hook hook="integrate_admin_include" file="$sourcedir/SolveTopic-Admin.php" />
-		<hook function="add_ts_settings_menu" hook="integrate_modify_modifications" file="$sourcedir/SolveTopic-Admin.php" />
-		<hook function="add_ts_adminmenu" hook="integrate_admin_areas" file="$sourcedir/SolveTopic-Admin.php" />
-		<hook function="add_ts_permissions" hook="integrate_load_permissions" file="$sourcedir/SolveTopic.php" />
-
 		<hook function="integrate_actions_solveTopic" hook="integrate_actions" file="$sourcedir/SolveTopic.php" />
-		<hook function="integrate_moderate_areas_solveTopic" hook="integrate_moderate_areas" file="$sourcedir/SolveTopic.php" />
+		<hook function="integrate_log_types_solveTopic" hook="integrate_log_types" file="$sourcedir/SolveTopic.php" />
 
+		<!-- Display hooks -->
 		<hook function="integrate_display_buttons_solveTopic" hook="integrate_display_buttons" file="$sourcedir/SolveTopic.php" />
 		<hook function="integrate_display_topic_solveTopic" hook="integrate_display_topic" file="$sourcedir/SolveTopic.php" />
 
-
+		<!-- Message index hooks -->
 		<hook function="integrate_message_index_solveTopic" hook="integrate_message_index" file="$sourcedir/SolveTopic.php" />
 		<hook function="integrate_messageindex_buttons_solveTopic" hook="integrate_messageindex_buttons" file="$sourcedir/SolveTopic.php" />
 
-		<hook function="integrate_log_types_solveTopic" hook="integrate_log_types" file="$sourcedir/SolveTopic.php" />
+		<!-- Admin/Moderation Sections -->
+		<hook hook="integrate_admin_include" file="$sourcedir/SolveTopic-Admin.php" />
+		<hook function="add_ts_adminmenu" hook="integrate_admin_areas" file="$sourcedir/SolveTopic-Admin.php" />
+		<hook function="add_ts_settings_menu" hook="integrate_modify_modifications" file="$sourcedir/SolveTopic-Admin.php" />
+		<hook function="add_ts_permissions" hook="integrate_load_permissions" file="$sourcedir/SolveTopic-Admin.php" />
+		<hook function="integrate_moderate_areas_solveTopic" hook="integrate_moderate_areas" file="$sourcedir/SolveTopic-Admin.php" />
 		<hook function="integrate_viewModLog_solveTopic" hook="integrate_viewModLog" file="$sourcedir/SolveTopic-Admin.php" />
-
 	</install>
 	<uninstall for="2.1 Beta 3, 2.1 Beta 4, 2.1 RC1">
 		<database>uninstall-optional.php</database>
@@ -67,22 +68,25 @@
 		<remove-file name="$imagesdir/post/solved.png" />
 		<remove-file name="$themes_dir/default/SolveTopic-Display.template.php" />
 
+		<!-- Core Startup -->
 		<hook function="integrate_pre_load_solveTopic" hook="integrate_pre_load" file="$sourcedir/SolveTopic.php" reverse="true" />
+		<hook function="integrate_actions_solveTopic" hook="integrate_actions" file="$sourcedir/SolveTopic.php" reverse="true" />
+		<hook function="integrate_log_types_solveTopic" hook="integrate_log_types" file="$sourcedir/SolveTopic.php" reverse="true" />
+
+		<!-- Display hooks -->
+		<hook function="integrate_display_buttons_solveTopic" hook="integrate_display_buttons" file="$sourcedir/SolveTopic.php" reverse="true" />
+		<hook function="integrate_display_topic_solveTopic" hook="integrate_display_topic" file="$sourcedir/SolveTopic.php" reverse="true" />
+
+		<!-- Message index hooks -->
+		<hook function="integrate_message_index_solveTopic" hook="integrate_message_index" file="$sourcedir/SolveTopic.php" reverse="true" />
+		<hook function="integrate_messageindex_buttons_solveTopic" hook="integrate_messageindex_buttons" file="$sourcedir/SolveTopic.php" reverse="true" />
+
+		<!-- Admin/Moderation Sections -->
 		<hook hook="integrate_admin_include" file="$sourcedir/SolveTopic-Admin.php" reverse="true" />
 		<hook function="add_ts_settings_menu" hook="integrate_modify_modifications" file="$sourcedir/SolveTopic-Admin.php" reverse="true" />
 		<hook function="add_ts_adminmenu" hook="integrate_admin_areas" file="$sourcedir/SolveTopic-Admin.php" reverse="true" />
 		<hook function="add_ts_permissions" hook="integrate_load_permissions" file="$sourcedir/SolveTopic.php" reverse="true" />
-
-		<hook function="integrate_actions_solveTopic" hook="integrate_actions" file="$sourcedir/SolveTopic.php" reverse="true" />
 		<hook function="integrate_moderate_areas_solveTopic" hook="integrate_moderate_areas" file="$sourcedir/SolveTopic.php" reverse="true" />
-
-		<hook function="integrate_display_buttons_solveTopic" hook="integrate_display_buttons" file="$sourcedir/SolveTopic.php" reverse="true" />
-		<hook function="integrate_display_topic_solveTopic" hook="integrate_display_topic" file="$sourcedir/SolveTopic.php" reverse="true" />
-
-		<hook function="integrate_message_index_solveTopic" hook="integrate_message_index" file="$sourcedir/SolveTopic.php" reverse="true" />
-		<hook function="integrate_messageindex_buttons_solveTopic" hook="integrate_messageindex_buttons" file="$sourcedir/SolveTopic.php" reverse="true" />
-
-		<hook function="integrate_log_types_solveTopic" hook="integrate_log_types" file="$sourcedir/SolveTopic.php" reverse="true" />
 		<hook function="integrate_viewModLog_solveTopic" hook="integrate_viewModLog" file="$sourcedir/SolveTopic-Admin.php" reverse="true" />
 	</uninstall>	
 

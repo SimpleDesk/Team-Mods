@@ -158,7 +158,7 @@ function integrate_display_topic_solveTopic(&$topic_selects, &$topic_tables, &$t
 }
 
 /**
- *	Adds Topic Solved to our Actionn Log as its own section.
+ *	Adds Topic Solved to our Action Log as its own section.
  *
  *	@param string &$log_types The log types.
  *
@@ -167,26 +167,6 @@ function integrate_display_topic_solveTopic(&$topic_selects, &$topic_tables, &$t
 function integrate_log_types_solveTopic(&$log_types)
 {
 	$log_types['solve'] = 4;
-}
-
-/**
- *	Adds Topic Solved to our Moderation Menu.
- *
- *	@param string &$menuData The menu data.
- *
- *	@since 1.1
-*/
-function integrate_moderate_areas_solveTopic(&$menuData)
-{
-	global $modSettings, $txt, $scripturl;
-
-	$menuData['main']['areas']['solvelog'] = array(
-		'enabled' => !empty($modSettings['enable_solved_log']),
-		'label' => $txt['modlog_solve_log'],
-		'file' => 'Modlog.php',
-		'function' => 'ViewModlog',
-		'custom_url' => $scripturl . '?action=moderate;area=modlog;sa=solvelog',
-	);
 }
 
 /**
