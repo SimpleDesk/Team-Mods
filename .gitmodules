@@ -1,0 +1,3 @@
+[submodule "topic_solved"]
+	path = topic_solved
+	url = git@github.com:SimpleDesk/Team-Mods-TopicSolved.git
